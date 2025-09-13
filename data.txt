@@ -1,0 +1,1 @@
+{"type":"Cash","date":"2025-09-13","desc":"asd","amount":1000}

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Catatan Pengeluaran</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f6fa; padding:20px; }
+    h1 { text-align:center; }
+    .container { max-width:700px; margin:auto; background:white; padding:20px; border-radius:10px; }
+    input, select, button { padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc; }
+    table { width:100%; border-collapse:collapse; margin-top:15px; }
+    th,td { padding:10px; border-bottom:1px solid #ddd; text-align:center; }
+    th { background:#3498db; color:white; }
+  </style>
+</head>
+<body>
+  <h1>Catatan Pengeluaran</h1>
+  <div class="container">
+    <form id="form">
+      <select id="type" required>
+        <option value="">Pilih Jenis</option>
+        <option value="Cash">Cash</option>
+        <option value="Transfer">Transfer</option>
+      </select>
+      <input type="date" id="date" required>
+      <input type="text" id="desc" placeholder="Deskripsi" required>
+      <input type="number" id="amount" placeholder="Nominal" required>
+      <button type="submit">Tambah</button>
+    </form>
+
+    <div style="margin:10px 0;">
+      <button onclick="downloadTXT()">💾 Simpan ke TXT</button>
+      <input type="file" id="fileInput" accept=".txt">
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Jenis</th>
+          <th>Deskripsi</th>
+          <th>Nominal</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let transactions = [];
+
+    const form = document.getElementById("form");
+    const list = document.getElementById("list");
+    const fileInput = document.getElementById("fileInput");
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const tx = {
+        type: document.getElementById("type").value,
+        date: document.getElementById("date").value,
+        desc: document.getElementById("desc").value,
+        amount: parseInt(document.getElementById("amount").value)
+      };
+      transactions.push(tx);
+      render();
+      form.reset();
+    });
+
+    function render() {
+      list.innerHTML = "";
+      transactions.forEach(tx => {
+        const row = `<tr>
+          <td>${tx.date}</td>
+          <td>${tx.type}</td>
+          <td>${tx.desc}</td>
+          <td>Rp ${tx.amount.toLocaleString()}</td>
+        </tr>`;
+        list.innerHTML += row;
+      });
+    }
+
+    // Download transaksi jadi TXT
+    function downloadTXT() {
+      let text = transactions.map(tx => JSON.stringify(tx)).join("\n");
+      let blob = new Blob([text], {type:"text/plain"});
+      let a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "data.txt";
+      a.click();
+    }
+
+    // Upload file TXT untuk load transaksi
+    fileInput.addEventListener("change", function() {
+      const file = this.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const lines = e.target.result.split("\n").filter(l => l.trim() !== "");
+        transactions = lines.map(l => JSON.parse(l));
+        render();
+      };
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
